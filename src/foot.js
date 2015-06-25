@@ -3,19 +3,21 @@
 
 function export_as_img( layer, filename ){
   // Actual writing of asset
-  var slice,
-    rect = [layer absoluteDirtyRect]
+  var rect = [layer absoluteDirtyRect]
 
+  var slice = getSlice();
+  Util.log("— writing asset " + slice + " to disk: " + filename)
+  var imageData = [MSSliceExporter dataForRequest:slice]
+  [imageData writeToFile:filename atomically:true]
 
+}
+
+function getSlice() {
   slice = [[MSSliceMaker slicesFromExportableLayer:layer inRect:rect] firstObject]
   slice.page = [[doc currentPage] copyLightweight]
   slice.format = "png"
   slice.scale = 2
-
-//  Util.log("— writing asset " + slice + " to disk: " + filename)
-  var imageData = [MSSliceExporter dataForRequest:slice]
-  [imageData writeToFile:filename atomically:true]
-
+  return slice;
 }
 
 function output( processResult ){
@@ -92,13 +94,17 @@ function output( processResult ){
 }
 
 
+function displayHeader(label) {
+    Util.log("###################")
+    Util.log("### " + label + " ###")
+    Util.log("###################")
+}
+
+
 function main() {
     Util.execute(function() {
         var start = new Date().getTime()
-
-        Util.log("###################")
-        Util.log("### blade start ###")
-        Util.log("###################")
+        displayHeader('blade start');
 
         //1. Process layers
         var layers = [[doc currentPage] layers],
@@ -114,9 +120,7 @@ function main() {
 
         var end = new Date().getTime()
         Util.log("Time used: " +(end - start))
-        Util.log("###################")
-        Util.log("###  blade end  ###")
-        Util.log("###################")
+        displayHeader('blade end');
         [doc showMessage:"Export Complete"]
 
     })

@@ -1,24 +1,29 @@
-Blade  V0.0.1
+Sketch Webcomponents
 ==============
+
+This plugin is based on [blade 0.0.1](https://github.com/sskyy/blade) plugin by Zhenyu Hou @sskyy
+
+## Web Components export
+
+The goal of this plugin is to export a page with Webcomponents instead of raw HTML.
+Web Components are much nicer to work with as they encapsulate all styling and HTML for each component.
+They also allow sharing and reuse of components and much more... The future of the web!
+
+## Blade 0.0.1
 
 Blade is a Sketch 3 plugin for automatically HTML generating. It will generate tag `<div>` for group, tag `<p>` for text , etc.
 
 ##Notice##
-
  - This plugin works for **latest Sketch beta or version above 3.0.3(7882)** !!!.
  - This version is more stable now, but may still have problem with mega size sketch file.
  - Please group all you layer in one group and place it at coordinate (0,0) as the demo shows. - It does not work with artboard for now.
 
 
 ##Quick start##
-
-
  - Clone or download the repo.
  - Place everything in `dist` folder into your sketch plugin folder.[Where are sketch plugins?](http://bohemiancoding.com/sketch/support/developer/01-introduction/01.html)
  - Group all your layer in one group and run blade.
  - Blade will generate a new folder just in the same folder in which you put your sketch file.
-
-
 
 ##Amazing features##
 
