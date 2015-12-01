@@ -49,7 +49,7 @@ Binding.register_dom_generator('Text',{
         if( dom.tagName == 'img' ) return
 
         Util.extend( dom.style,{
-            "font-size" : layer.fontSize(),
+            "font-size" : layer.fontSize() + 'px',
             "letter-spacing" : layer.characterSpacing(),
             "line-height" :  layer.lineSpacing() + 'px'
         })
@@ -69,8 +69,8 @@ Binding.register_dom_generator('Text',{
         //fix browser and Sketch line-height diffrence
         dom.style['margin-top'] = (parseInt( dom.style['line-height'] ) - parseInt( layer.fontSize() ) ) + "px"
 
-        dom.style['white-space'] = 'pre'
-        dom.style['word-break'] = 'break-word'
+        dom.style['white-space'] = 'pre-line'
+        //dom.style['word-break'] = 'keep-all'
 
         //NOT SUPPORT font-style NOW
         var font = layer.font()
