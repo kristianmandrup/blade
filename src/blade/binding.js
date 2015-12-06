@@ -87,7 +87,14 @@ var Binding = Binding || (function(){
 
         //we must append the dom here so compose function can access parent node.
         //notice you can only use dom functions to modify dom, or you will loss reference.
-        parentOutputRef.dom.append( outputRef.dom )
+            
+            // ae adds exception here to prepend for first layer so order is actual doc order
+            if (layer.parentGroup().name() && layer.parentGroup().name().match(/wrapper|stacking/)  ) {
+              parentOutputRef.dom.prepend( outputRef.dom )
+            } else {
+              parentOutputRef.dom.append( outputRef.dom )
+              
+            }
 
         bindings = bindings || get_bindings(layer.name())
 
@@ -130,7 +137,9 @@ var Binding = Binding || (function(){
                 bindingImp[bindingName]['compose']( layer, bindingArgs, outputRef )
 
                 //mark it
-                outputRef.dom.attr('binding-'+bindingName,String(bindingArgs))
+                
+                // ae commented this out
+                //outputRef.dom.attr('binding-'+bindingName,String(bindingArgs))
             })
 
 
@@ -163,15 +172,22 @@ var Binding = Binding || (function(){
     }
 
     function get_bindings( name ){
-        var matches = name.match(/\[([\w\d%_,-:=]*)\]/g),
+        var matches = name.match(/\[([\w\d%_,\/\@#-:=]*)\]/g),
             bindings = {}
-
+        
+            
         if( matches ){
-            for( var i in matches ){
-                var tmp = matches[i].substring(1,matches[i].length-1).split("="),
-                    bindingName = tmp[0],
-                    bindingArgs = tmp[1] ? tmp[1].split(",") : [true]
+          
+            for( var i in matches ){              
+              var match = matches[i].substring(1,matches[i].length-1);
+              
+              
+              var tmp = match.split("=");
+              
+              var bindingName = tmp[0];
+              var bindingArgs = tmp[1] ? tmp[1].split(",") : [true];
 
+              
                 bindings[bindingName] = bindingArgs
             }
         }
@@ -186,29 +202,34 @@ var Binding = Binding || (function(){
     }
 
     function generate_dom_by_kind( layer, outputRef ){
-
+        
         var kind = get_kind( layer),generatorName = domGenerators[kind]? kind : 'default'
         Util.log("generate dom for " + kind)
 
         domGenerators[generatorName].dom( layer, outputRef )
         domGenerators[generatorName].css( outputRef.dom, layer)
 
-        outputRef.dom.data('sketch-kind', kind )
-        outputRef.dom.data('title', layer.name())
+        //outputRef.dom.data('sketch-kind', kind )
+        //outputRef.dom.data('title', layer.name())
     }
 
     function setup_rect_for_dom( dom, layer ){
-        dom.style.position = "absolute"
+        // moved to stylesheet
+        //dom.style.position = "absolute"
+      dom.addClass('abs');
+      
+      //dom.id = Math.random().toString(36).substr(2, 5);
+      
         if( get_kind(layer.parentGroup()) == 'LayerGroup' ){
-            dom.style.left = layer.absoluteRect().rulerX() - layer.parentGroup().absoluteRect().rulerX()
-            dom.style.top = layer.absoluteRect().rulerY() - layer.parentGroup().absoluteRect().rulerY()
+            dom.style.left = (layer.absoluteRect().rulerX() - layer.parentGroup().absoluteRect().rulerX()).toFixed(0)
+            dom.style.top = (layer.absoluteRect().rulerY() - layer.parentGroup().absoluteRect().rulerY()).toFixed(0)
         }else{
-            dom.style.left = layer.absoluteRect().rulerX()
-            dom.style.top = layer.absoluteRect().rulerY()
+            dom.style.left = layer.absoluteRect().rulerX().toFixed(0)
+            dom.style.top = layer.absoluteRect().rulerY().toFixed(0)
         }
 
-        dom.style.width =  layer.absoluteRect().width()
-        dom.style.height =  layer.absoluteRect().height()
+        dom.style.width =  layer.absoluteRect().width().toFixed(0)
+        dom.style.height =  layer.absoluteRect().height().toFixed(0)
         if( !layer.isVisible()){
             dom.css('display','none')
         }
@@ -259,8 +280,10 @@ var Binding = Binding || (function(){
 
         return _kind;
     }
-
+    
+    
     function generate_id(){
+      
         return '_object_' + ObjectId++
     }
 

@@ -4,7 +4,7 @@
 function export_as_img( layer, filename ){
   // Actual writing of asset
   var slice,
-    rect = [layer absoluteDirtyRect]
+    rect = [layer absoluteInfluenceRect]
 
 
   slice = [[MSSliceMaker slicesFromExportableLayer:layer inRect:rect] firstObject]
@@ -86,9 +86,13 @@ function output( processResult ){
         })
     }
 
+    processResult.dom.prepend(
+      Dom.create('meta').attr('charset','utf-8'));
+    
+
     //5. Save html
     Util.save_file_from_string(Config.target_folder + "/index.html", processResult.dom.outerHTML);
-//    Util.save_file_from_string(Config.target_folder + "/index.html", processResult.dom.outerHTML());
+
 }
 
 
@@ -103,6 +107,7 @@ function main() {
         //1. Process layers
         var layers = [[doc currentPage] layers],
             processResult
+      
 
         Util.each( layers, function( subLayer ){
             processResult = Binding.apply_bindings( subLayer );

@@ -14,6 +14,15 @@ function handler_export( layer, outputRef){
     return dom
 }
 
+function handler_export_bg( layer, outputRef, dom){
+      var filename = Config.images_folder + "/" + Util.uniq( Binding.sanitize_filename(layer.name()) ),
+        ext = Config.export_img_ext,
+        src = filename.replace(Config.target_folder+"/",'') + ext
+    dom.style['background'] = "url('" + src +"')";
+    outputRef.exportFiles.push( {layer : layer, target : filename+ext})
+    return [outputRef, dom]
+}
+
 Binding.register_dom_generator('LayerGroup',function(layer, outputRef){
     outputRef.dom =  Dom.create('div')
     Binding.setup_rect_for_dom( outputRef.dom, layer )
@@ -46,14 +55,20 @@ Binding.register_dom_generator('Text',{
 
     },
     css :function(dom, layer){
+      
+        
+      
         if( dom.tagName == 'img' ) return
-
         Util.extend( dom.style,{
-            "font-size" : layer.fontSize() + 'px',
-            "letter-spacing" : layer.characterSpacing(),
-            "line-height" :  layer.lineSpacing() + 'px'
+            "font-size" : layer.fontSize().toFixed(0) -1,
+            "letter-spacing" : layer.characterSpacing().toFixed(1),
+            "line-height" :  layer.lineSpacing().toFixed(0) + 'px'
         })
 
+        dom.style['color'] = layer.textColor().stringValueWithAlpha(true);
+        dom.style['opacity'] = layer.style().contextSettings().opacity().toFixed(2);
+        
+        /*
         dom.style['color'] = 'rgba(' + String(layer.textColor()).replace(/[\(\)]/g,'').split(' ').map(function(v){
             var t = v.split(":"),type = t[0],value=t[1]
             if( type !== 'a' ){
@@ -61,21 +76,21 @@ Binding.register_dom_generator('Text',{
             }
             return Number(value)
         }).join(',')+')'
-
-
+        */
+        
         var align = ['left','right','center','justify']
         dom.style['text-align'] = align[layer.textAlignment()] ? align[layer.textAlignment()] : 'inherit'
 
         //fix browser and Sketch line-height diffrence
-        dom.style['margin-top'] = (parseInt( dom.style['line-height'] ) - parseInt( layer.fontSize() ) ) + "px"
+        //dom.style['margin-top'] = (parseInt( dom.style['line-height'] ) - parseInt( layer.fontSize() ) ) + "px"
 
         dom.style['white-space'] = 'pre-line'
         //dom.style['word-break'] = 'keep-all'
-
+ 
         //NOT SUPPORT font-style NOW
         var font = layer.font()
-        dom.style['font-family'] = "'"+font.familyName()+"'"
-        dom.style['font-weight'] = Number(Util.fontWeight( font) ) *100
+        dom.style['font-family'] = "'"+font.familyName()+"'"        
+        dom.style['font-weight'] = Number(Util.fontWeight( font) - 2 ) *100
 
         //TODO: deal with font fill
 
