@@ -18,11 +18,17 @@ Binding.registry('centering',{
       dom.style.height =  layer.absoluteRect().height().toFixed(0);
       
       // apply the height from the section
-      var height = layer.parentGroup().absoluteRect().height().toFixed(0); 
-      dom.style['min-height'] =  height;
-      dom.data('height', height);
+      //var height = layer.parentGroup().absoluteRect().height().toFixed(0); 
+      //dom.style['min-height'] =  height;
+      //dom.data('height', height);
       
-      dom.style.top = (layer.absoluteRect().rulerY() - layer.parentGroup().absoluteRect().rulerY()).toFixed(0)
+      // calcluate if first child here
+      
+      dom.style['top'] = (layer.absoluteRect().rulerY() - layer.parentGroup().absoluteRect().rulerY()).toFixed(0);     
+      dom.style.left = '';
+         
+      //dom.style['top'] = (layer.absoluteRect().rulerY() - layer.absoluteRect().rulerY()).toFixed(0);        
+      
       
       outputRef.dom = dom
     },

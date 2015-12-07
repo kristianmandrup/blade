@@ -76,7 +76,12 @@ input[type='text'] {
 a[name] {
   visibility:hidden;
 }
-
+.right {
+  float:right;
+} 
+.left {
+  float:left;
+}
 .abs {
   position: absolute;
 }
@@ -88,14 +93,14 @@ section > .background, section > .background *  {
   width: 100%!important;
 }
 
-
-section > .centering {
+section > .centering, section > .centering > .centering {
   position: relative!important;
   margin: 0 auto!important;
 }
 
 
-section > .centering.mobile > div {
+
+#wrapper.scaling.responsive section > .centering.mobile > div {
   position: relative!important;
   top: 0!important;
   left: 0!important;

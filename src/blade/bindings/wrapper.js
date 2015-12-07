@@ -4,7 +4,6 @@ Binding.registry('wrapper',{
           layers = [layer layers]
       
       dom.id = "wrapper";
-      dom.attr('class','wrapper');
       dom.style = null;
       
       outputRef.dom = dom

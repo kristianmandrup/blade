@@ -87,15 +87,17 @@ var Binding = Binding || (function(){
 
         //we must append the dom here so compose function can access parent node.
         //notice you can only use dom functions to modify dom, or you will loss reference.
-            
+        
+
             // ae adds exception here to prepend for first layer so order is actual doc order
-            if (layer.parentGroup().name() && layer.parentGroup().name().match(/wrapper|stacking/)  ) {
+            if (layer.parentGroup().name() && layer.parentGroup().name().match(/wrapper|section|stacking/)  ) {
               parentOutputRef.dom.prepend( outputRef.dom )
             } else {
               parentOutputRef.dom.append( outputRef.dom )
               
             }
 
+            
         bindings = bindings || get_bindings(layer.name())
 
         // apply default binding only if no binding specified

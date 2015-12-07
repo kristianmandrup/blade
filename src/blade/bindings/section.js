@@ -7,8 +7,9 @@ Binding.registry('section',{
       dom.attr('class',"wide");
       dom.style = {};
       //dom.style.width =  layer.absoluteRect().width().toFixed(0);
-      //dom.style.height =  layer.absoluteRect().height().toFixed(0);
-      //dom.style.top = (layer.absoluteRect().rulerY() - layer.parentGroup().absoluteRect().rulerY()).toFixed(0)
+      
+      dom.style.height =  layer.absoluteRect().height().toFixed(0);
+      dom.style.top = (layer.absoluteRect().rulerY() - layer.parentGroup().absoluteRect().rulerY()).toFixed(0)
       
       
       

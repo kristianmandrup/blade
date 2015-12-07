@@ -149,7 +149,7 @@ var Config = Config || (function(){
             href : css_folder + '/reset.css'
         }],
         export_img_ext : ".png",
-        show_error : true
+        show_error : false
 
     }
 })()
@@ -952,15 +952,17 @@ var Binding = Binding || (function(){
 
         //we must append the dom here so compose function can access parent node.
         //notice you can only use dom functions to modify dom, or you will loss reference.
-            
+        
+
             // ae adds exception here to prepend for first layer so order is actual doc order
-            if (layer.parentGroup().name() && layer.parentGroup().name().match(/wrapper|stacking/)  ) {
+            if (layer.parentGroup().name() && layer.parentGroup().name().match(/wrapper|section|stacking/)  ) {
               parentOutputRef.dom.prepend( outputRef.dom )
             } else {
               parentOutputRef.dom.append( outputRef.dom )
               
             }
 
+            
         bindings = bindings || get_bindings(layer.name())
 
         // apply default binding only if no binding specified
@@ -1688,11 +1690,17 @@ Binding.registry('centering',{
       dom.style.height =  layer.absoluteRect().height().toFixed(0);
       
       // apply the height from the section
-      var height = layer.parentGroup().absoluteRect().height().toFixed(0); 
-      dom.style['min-height'] =  height;
-      dom.data('height', height);
+      //var height = layer.parentGroup().absoluteRect().height().toFixed(0); 
+      //dom.style['min-height'] =  height;
+      //dom.data('height', height);
       
-      dom.style.top = (layer.absoluteRect().rulerY() - layer.parentGroup().absoluteRect().rulerY()).toFixed(0)
+      // calcluate if first child here
+      
+      dom.style['top'] = (layer.absoluteRect().rulerY() - layer.parentGroup().absoluteRect().rulerY()).toFixed(0);     
+      dom.style.left = '';
+         
+      //dom.style['top'] = (layer.absoluteRect().rulerY() - layer.absoluteRect().rulerY()).toFixed(0);        
+      
       
       outputRef.dom = dom
     },
@@ -1723,6 +1731,17 @@ Binding.registry('stacking',{
  * Created by jiamiu on 14-5-19.
  */
 
+
+Binding.registry('class',{
+    compose: function(  layer, args, outputRef  ){
+        var dom = outputRef.dom,
+            cls = args.pop()
+        dom.addClass(cls);        
+        outputRef.dom = dom
+      
+    }
+})
+
 /**
  * Created by jiamiu on 14-5-19.
  */
@@ -1741,6 +1760,18 @@ Binding.registry('default',function(  layer, args, outputRef  ){
     outputRef.dom = dom
   
 });
+
+
+Binding.registry('float',{
+    compose: function(  layer, args, outputRef  ){
+        var dom = outputRef.dom,
+            flt = args.pop()
+        dom.style.float = flt;
+        outputRef.dom = dom
+      
+    }
+})
+
 Binding.registry('form',{
     compose: function(  layer, args, outputRef  ){      
       var dom = outputRef.dom,
@@ -1843,6 +1874,55 @@ Binding.registry('hover',function(  layer, args, outputRef  ){
 Binding.registry('ignore',{
     stopAutoApplyBindingForChildren : true
 })
+
+
+Binding.registry('mobile-float',{
+    compose: function(  layer, args, outputRef  ){
+        var dom = outputRef.dom,
+            flt = args.pop()
+        dom.data('mobile-float',flt);
+        outputRef.dom = dom
+      
+    }
+})
+
+
+
+Binding.registry('mobile-scale',{
+    compose: function(  layer, args, outputRef  ){
+        var dom = outputRef.dom,
+            scale = args.pop()
+      
+        dom.data('mobile-scale', scale)  
+        outputRef.dom = dom
+      
+    }
+})
+
+
+
+Binding.registry('mobile-width',{
+    compose: function(  layer, args, outputRef  ){
+        var dom = outputRef.dom,
+            w = args.pop()
+        dom.data('width', layer.absoluteRect().width().toFixed(0));
+        dom.data('mobile-width', w);
+        outputRef.dom = dom;
+      
+    }
+})
+
+
+Binding.registry('mobilewidth',{
+    compose: function(  layer, args, outputRef  ){
+        var dom = outputRef.dom,
+            mw = args.pop()
+        dom.data({'mobile-width': mw});        
+        outputRef.dom = dom
+      
+    }
+})
+
 /**
  * Created by jiamiu on 14-5-19.
  */
@@ -1864,8 +1944,9 @@ Binding.registry('section',{
       dom.attr('class',"wide");
       dom.style = {};
       //dom.style.width =  layer.absoluteRect().width().toFixed(0);
-      //dom.style.height =  layer.absoluteRect().height().toFixed(0);
-      //dom.style.top = (layer.absoluteRect().rulerY() - layer.parentGroup().absoluteRect().rulerY()).toFixed(0)
+      
+      dom.style.height =  layer.absoluteRect().height().toFixed(0);
+      dom.style.top = (layer.absoluteRect().rulerY() - layer.parentGroup().absoluteRect().rulerY()).toFixed(0)
       
       
       
@@ -1920,9 +2001,12 @@ Binding.registry('tag',{
     compose: function(  layer, args, outputRef  ){
         var dom = outputRef.dom,
             tag = args.pop()
-      dom.tagName = tag;
+      dom.tagName = tag;      
+      outputRef.dom = dom
+      
     }
 })
+
 
 /**
  * Created by jiamiu on 14-6-5.
@@ -1999,7 +2083,6 @@ Binding.registry('wrapper',{
           layers = [layer layers]
       
       dom.id = "wrapper";
-      dom.attr('class','wrapper');
       dom.style = null;
       
       outputRef.dom = dom
