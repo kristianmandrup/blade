@@ -74,9 +74,7 @@ Binding.registry('section',{
       });
       
       
-      
-      [dom, outputRef] = Util.move_styles_to_sheet(dom, outputRef);
-      
+          
       
       outputRef.dom = dom
     },

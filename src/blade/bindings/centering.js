@@ -23,9 +23,7 @@ Binding.registry('centering',{
       //dom.data('height', height);
       
       dom.style['top'] = (layer.absoluteRect().rulerY() - layer.parentGroup().absoluteRect().rulerY()).toFixed(0);     
-      
-      [dom, outputRef] = Util.move_styles_to_sheet(dom, outputRef);
-      
+            
       outputRef.dom = dom
     },
     

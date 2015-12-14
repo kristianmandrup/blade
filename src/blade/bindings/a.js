@@ -48,9 +48,7 @@ Binding.registry('a',{
 
         // set position for text
         dom.style['cursor'] = 'pointer'
-        dom.style['text-decoration'] = 'none'
-        [dom, outputRef] = Util.move_styles_to_sheet(dom, outputRef);
-        
+        dom.style['text-decoration'] = 'none'        
         outputRef.dom = dom
     },
     //we will take the children from here

@@ -165,11 +165,38 @@ var Binding = Binding || (function(){
                 apply_bindings( subLayer, outputRef )
             })
         }
+        
+        
+        // ae -- export inline styles from dom.styles into index.css
+        if (outputRef && outputRef.dom ) {
+          if( outputRef.dom.attr('id') ){
+              var id = outputRef.dom.attr('id')
+          }else{
+              var id = Binding.generate_id()
+              outputRef.dom.attr('id', id)
+          }
+
+
+          var style = {
+              comment : '',
+              style : {}
+          }
+          style.style['#'+id] = {}
+    
+    
+          if (outputRef.styles) outputRef.styles.push( style );
+          
+          if (outputRef.dom.style) Util.extend(style.style['#'+id] , outputRef.dom.style)
+          outputRef.dom.style = {};
+          
+          
+        }
+
 
         parentOutputRef.scripts = parentOutputRef.scripts.concat( outputRef.scripts )
         parentOutputRef.styles = parentOutputRef.styles.concat( outputRef.styles )
         parentOutputRef.exportFiles = parentOutputRef.exportFiles.concat( outputRef.exportFiles )
-        
+
         return parentOutputRef
     }
 
@@ -283,7 +310,7 @@ var Binding = Binding || (function(){
     
     function generate_id(){
       
-        return 'item' + ObjectId++
+        return 'el' + ObjectId++
     }
 
     function concat_child_process_result( current, child){

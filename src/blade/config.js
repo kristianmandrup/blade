@@ -48,7 +48,7 @@ var Config = Config || (function(){
           }          
         ],
         export_img_ext : ".png",
-        show_error : true
+        show_error : false
 
     }
 })()
