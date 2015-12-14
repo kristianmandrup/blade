@@ -3,8 +3,10 @@
      margin: 0;
      padding: 0;
  }
-
-
+ a {
+   border-style: none;
+   text-decoration: none;
+ }
  -ms-@viewport {
      width: device-width;
      initial-scale: 1;
@@ -64,16 +66,25 @@ section {
   width: 100%!important;
   /* position: absolute; */
   overflow: hidden;
+}
+section.bg-image {
   background-repeat: no-repeat;
   background-size: cover!important;
+  background-position: 'center top';
 }
 
-input[type='text'] {
-  border-radius: 2px;
-  padding: 0 5%;
+input[type='text'], textarea{
+  border-radius: 4px;
+  padding: 0 10px;
+}
+textarea {
+  padding: 10px 10px;
 }
 
 a[name] {
+  visibility:hidden;
+}
+.hide {
   visibility:hidden;
 }
 .right {
@@ -82,10 +93,7 @@ a[name] {
 .left {
   float:left;
 }
-.abs {
-  position: absolute;
-}
-p.abs {
+p {
   white-space:pre-line;  
 }
 

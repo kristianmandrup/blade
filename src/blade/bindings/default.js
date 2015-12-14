@@ -9,6 +9,9 @@ Binding.registry('default',function(  layer, args, outputRef  ){
     //dom.attr('class',layer.name().replace(' ','_').toLowerCase());
     //dom.addClass(layer.name().replace(' ','_').toLowerCase());
     
+    
+    [dom, outputRef] = Util.move_styles_to_sheet(dom, outputRef);
+    
     outputRef.dom = dom
   
 });

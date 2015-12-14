@@ -169,7 +169,7 @@ var Binding = Binding || (function(){
         parentOutputRef.scripts = parentOutputRef.scripts.concat( outputRef.scripts )
         parentOutputRef.styles = parentOutputRef.styles.concat( outputRef.styles )
         parentOutputRef.exportFiles = parentOutputRef.exportFiles.concat( outputRef.exportFiles )
-
+        
         return parentOutputRef
     }
 
@@ -216,11 +216,8 @@ var Binding = Binding || (function(){
     }
 
     function setup_rect_for_dom( dom, layer ){
-        // moved to stylesheet
-        //dom.style.position = "absolute"
-      dom.addClass('abs');
-      
-      //dom.id = Math.random().toString(36).substr(2, 5);
+        
+        dom.style.position = "absolute"
       
         if( get_kind(layer.parentGroup()) == 'LayerGroup' ){
             dom.style.left = (layer.absoluteRect().rulerX() - layer.parentGroup().absoluteRect().rulerX()).toFixed(0)
@@ -286,7 +283,7 @@ var Binding = Binding || (function(){
     
     function generate_id(){
       
-        return '_object_' + ObjectId++
+        return 'item' + ObjectId++
     }
 
     function concat_child_process_result( current, child){

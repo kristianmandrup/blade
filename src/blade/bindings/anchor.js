@@ -7,6 +7,9 @@ Binding.registry('anchor',{
       dom.tagName = 'a';
       dom.attr('name', anchorName);
       //dom.text('');
+      dom.style = null;
+      dom.attr('class','');
+      dom.innerHtml = '';
       
       outputRef.dom = dom
     },

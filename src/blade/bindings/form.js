@@ -7,6 +7,9 @@ Binding.registry('form',{
       dom.tagName = 'form'
       dom.attr('method', 'POST' );
       dom.attr('action', action );
+      
+      [dom, outputRef] = Util.move_styles_to_sheet(dom, outputRef);
+      
       outputRef.dom = dom
     },
     

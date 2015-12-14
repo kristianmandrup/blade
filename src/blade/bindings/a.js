@@ -14,7 +14,6 @@ Binding.registry('a',{
             href = args.pop()
       
         dom.tagName = 'a'
-        dom.addClass('abs');
       
         if( !dom.attr('id') ){
             dom.attr('id', id)
@@ -36,41 +35,24 @@ Binding.registry('a',{
         style.style['#'+id] = {}
         style.style['#'+id+":hover"] = {}
 
-
-        log(Binding.get_kind( layer ));
         
-        if( Binding.get_kind( layer ) !== 'LayerGroup' ){
+
+        
+        if( Binding.get_kind( layer ) == 'Text' ){
           
+            dom.innerHTML = layer.stringValue()
             Binding.domGenerators['Text'].css( dom, layer )
-        }else{
           
-            var layers = [layer layers]
-
-            Util.each( layers, function( subLayer){
-
-                var bindings = Binding.get_bindings(subLayer.name()),
-                    binding = Util.values( bindings).pop(),
-                    fakeDom,
-
-
-                fakeDom = Dom.create('div')
-
-                    //use generator to help use with css
-                    Binding.domGenerators['Text'].css( fakeDom, subLayer )
-
-                    if( !dom.innerHTML ){
-                        dom.innerHTML = subLayer.stringValue()
-                    }
-
-                Util.extend(style.style['#'+id+(binding?':'+binding:'')] , fakeDom.style)
-            })
         }
+        
 
         // set position for text
         dom.style['cursor'] = 'pointer'
         dom.style['text-decoration'] = 'none'
+        [dom, outputRef] = Util.move_styles_to_sheet(dom, outputRef);
+        
         outputRef.dom = dom
     },
     //we will take the children from here
-    stopAutoApplyBindingForChildren : true
+    stopAutoApplyBindingForChildren : false
 })

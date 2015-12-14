@@ -132,24 +132,31 @@ var Config = Config || (function(){
         css_folder : css_folder,
         plugin_folder : plugin_folder,
         global_scripts : [
-          {
+/*          {
             comment : 'minified',
             origin : plugin_folder + '/blade/lib/minified.js',
             src : js_folder + '/minified.js'
-          },
+          },*/
           {
             comment : 'app',
             origin : plugin_folder + '/blade/lib/app.js',
             src : js_folder + '/app.js'
           }
         ],
-        global_styles : [{
+        global_styles : [
+          {
             comment : 'global reset',
             origin : plugin_folder + '/blade/lib/reset.css',
             href : css_folder + '/reset.css'
-        }],
+          },
+          {
+            comment : 'fonts',
+            origin : plugin_folder + '/fonts/stylesheet.css',
+            href : '/fonts/stylesheet.css'
+          }          
+        ],
         export_img_ext : ".png",
-        show_error : false
+        show_error : true
 
     }
 })()
@@ -620,6 +627,26 @@ var Util = Util || (function() {
     function script_to_string( scriptObj ){
         return wrap_script([render_variables(scriptObj.vars),scriptObj.body])
     }
+    
+    function move_styles_to_sheet(dom, outputRef) {
+      if( dom.attr('id') ){
+          id = dom.attr('id')
+      }else{
+          id = Binding.generate_id()
+          dom.attr('id', id)
+      }
+
+      var style = {
+          comment : '',
+          style : {}
+      }
+      style.style['#'+id] = {}
+    
+      outputRef.styles.push( style )
+      Util.extend(style.style['#'+id] , dom.style)
+      dom.style = {};
+      return [dom, outputRef]
+    }
 
     my.join = join
     my.map = map
@@ -630,6 +657,7 @@ var Util = Util || (function() {
     my.wrap_script = wrap_script
     my.render_variables = render_variables
     my.script_to_string =script_to_string
+    my.move_styles_to_sheet =move_styles_to_sheet
 
     return my;
 }());
@@ -762,6 +790,12 @@ var Dom = Dom || (function(){
         return this
     }
 
+    E.prototype.removeClass = function( className ){
+      var index = this.classList.indexOf(className);
+      this.classList.splice(className, 1);      
+      return this
+    }
+
 //    E.prototype.outerHTML = function(){
 //
 //        var selfClose = ['input','img','textarea','link']
@@ -785,7 +819,7 @@ var Dom = Dom || (function(){
 
     Object.defineProperty(E.prototype,"outerHTML",{
         get : function(){
-            var selfClose = ['input','img','textarea','link']
+            var selfClose = ['input','img','link','meta']
 
             if( selfClose.indexOf(this.tagName ) != -1 ){
                 return '<' + generate_tag_head(this) + ' />'
@@ -1034,7 +1068,7 @@ var Binding = Binding || (function(){
         parentOutputRef.scripts = parentOutputRef.scripts.concat( outputRef.scripts )
         parentOutputRef.styles = parentOutputRef.styles.concat( outputRef.styles )
         parentOutputRef.exportFiles = parentOutputRef.exportFiles.concat( outputRef.exportFiles )
-
+        
         return parentOutputRef
     }
 
@@ -1081,11 +1115,8 @@ var Binding = Binding || (function(){
     }
 
     function setup_rect_for_dom( dom, layer ){
-        // moved to stylesheet
-        //dom.style.position = "absolute"
-      dom.addClass('abs');
-      
-      //dom.id = Math.random().toString(36).substr(2, 5);
+        
+        dom.style.position = "absolute"
       
         if( get_kind(layer.parentGroup()) == 'LayerGroup' ){
             dom.style.left = (layer.absoluteRect().rulerX() - layer.parentGroup().absoluteRect().rulerX()).toFixed(0)
@@ -1151,7 +1182,7 @@ var Binding = Binding || (function(){
     
     function generate_id(){
       
-        return '_object_' + ObjectId++
+        return 'item' + ObjectId++
     }
 
     function concat_child_process_result( current, child){
@@ -1227,23 +1258,40 @@ var Binding = Binding || (function(){
 function handler_export( layer, outputRef){
     var dom = Dom.create('img'),
         filename = Config.images_folder + "/" + Util.uniq( Binding.sanitize_filename(layer.name()) ),
-        ext = Config.export_img_ext,
-        src = filename.replace(Config.target_folder+"/",'') + ext
+        ext = Config.export_img_ext
+  
+        if (layer.name().match(/\.jpg$/)) { ext = ""    }
+        var src = filename.replace(Config.target_folder+"/",'') + ext
 
+  
 
     dom.attr('src', src)
     outputRef.exportFiles.push( {layer : layer, target : filename+ext})
     return dom
 }
 
-function handler_export_bg( layer, outputRef, dom){
-      var filename = Config.images_folder + "/" + Util.uniq( Binding.sanitize_filename(layer.name()) ),
-        ext = Config.export_img_ext,
-        src = filename.replace(Config.target_folder+"/",'') + ext
+function handler_export_bg( layer, outputRef, dom, isPattern){
+  
+      var filename = Config.images_folder + "/" + Util.uniq( Math.random().toString(36).substr(2, 5) + Binding.sanitize_filename(layer.name()) ),
+        ext = Config.export_img_ext
+  
+        if (layer.name().match(/\.jpg$/)) { ext = ""    }
+        
+        var src = filename.replace(Config.target_folder+"/",'') + ext
+    
+    if (isPattern) {
+      dom.style['background-repeat'] = 'repeat';
+      dom.addClass('bg-pattern');
+    } else {
+      dom.addClass('bg-image');      
+    }
     dom.style['background'] = "url('" + src +"')";
-    outputRef.exportFiles.push( {layer : layer, target : filename+ext})
+    outputRef.exportFiles.push( {layer : layer, target : filename+ext, isPattern: isPattern})
+    
     return [outputRef, dom]
 }
+
+
 
 Binding.register_dom_generator('LayerGroup',function(layer, outputRef){
     outputRef.dom =  Dom.create('div')
@@ -1271,6 +1319,8 @@ Binding.register_dom_generator('Text',{
         }
 
         Binding.setup_rect_for_dom( dom, layer )
+          
+          
         outputRef.dom = dom
 
 
@@ -1278,15 +1328,21 @@ Binding.register_dom_generator('Text',{
     },
     css :function(dom, layer){
       
+      
+      
         
       
         if( dom.tagName == 'img' ) return
+          
         Util.extend( dom.style,{
             "font-size" : layer.fontSize().toFixed(0) -1,
             "letter-spacing" : layer.characterSpacing().toFixed(1),
             "line-height" :  layer.lineSpacing().toFixed(0) + 'px'
-        })
-
+        });
+        
+        
+        dom.addClass('text');
+        
         dom.style['color'] = layer.textColor().stringValueWithAlpha(true);
         dom.style['opacity'] = layer.style().contextSettings().opacity().toFixed(2);
         
@@ -1315,6 +1371,10 @@ Binding.register_dom_generator('Text',{
         dom.style['font-weight'] = Number(Util.fontWeight( font) - 2 ) *100
 
         //TODO: deal with font fill
+        
+        
+        if (dom.tagName == 'title') dom.style = {};
+        
 
     }
 })
@@ -1333,6 +1393,7 @@ Binding.register_dom_generator('Rect',{
         if( borders.count() > 1 ){
             Util.log("borders count > 1")
             needExport = true
+          
         }
 
         for( ;i<fillsCount; i++){
@@ -1352,6 +1413,7 @@ Binding.register_dom_generator('Rect',{
         }
 
         Binding.setup_rect_for_dom( dom, layer )
+        
         outputRef.dom = dom
     },
     css : function(dom, layer) {
@@ -1364,6 +1426,8 @@ Binding.register_dom_generator('Rect',{
 
         if( borders.count() == 1 && borders.objectAtIndex(0).isEnabled()){
             dom.style['border'] = borders.objectAtIndex(0).thickness() +"px solid " + Util.toRGBA( borders.objectAtIndex(0).color() )
+        } else {
+          dom.style['border-style'] = 'none';          
         }
         if( fills.count() > 0 ){
             var backgrounds = []
@@ -1433,7 +1497,6 @@ Binding.registry('a',{
             href = args.pop()
       
         dom.tagName = 'a'
-        dom.addClass('abs');
       
         if( !dom.attr('id') ){
             dom.attr('id', id)
@@ -1455,43 +1518,26 @@ Binding.registry('a',{
         style.style['#'+id] = {}
         style.style['#'+id+":hover"] = {}
 
-
-        log(Binding.get_kind( layer ));
         
-        if( Binding.get_kind( layer ) !== 'LayerGroup' ){
+
+        
+        if( Binding.get_kind( layer ) == 'Text' ){
           
+            dom.innerHTML = layer.stringValue()
             Binding.domGenerators['Text'].css( dom, layer )
-        }else{
           
-            var layers = [layer layers]
-
-            Util.each( layers, function( subLayer){
-
-                var bindings = Binding.get_bindings(subLayer.name()),
-                    binding = Util.values( bindings).pop(),
-                    fakeDom,
-
-
-                fakeDom = Dom.create('div')
-
-                    //use generator to help use with css
-                    Binding.domGenerators['Text'].css( fakeDom, subLayer )
-
-                    if( !dom.innerHTML ){
-                        dom.innerHTML = subLayer.stringValue()
-                    }
-
-                Util.extend(style.style['#'+id+(binding?':'+binding:'')] , fakeDom.style)
-            })
         }
+        
 
         // set position for text
         dom.style['cursor'] = 'pointer'
         dom.style['text-decoration'] = 'none'
+        [dom, outputRef] = Util.move_styles_to_sheet(dom, outputRef);
+        
         outputRef.dom = dom
     },
     //we will take the children from here
-    stopAutoApplyBindingForChildren : true
+    stopAutoApplyBindingForChildren : false
 })
 /**
  * Created by jiamiu on 14-5-19.
@@ -1506,6 +1552,9 @@ Binding.registry('anchor',{
       dom.tagName = 'a';
       dom.attr('name', anchorName);
       //dom.text('');
+      dom.style = null;
+      dom.attr('class','');
+      dom.innerHtml = '';
       
       outputRef.dom = dom
     },
@@ -1527,6 +1576,9 @@ Binding.registry('btn',{
         var dom = outputRef.dom,
             layers = [layer layers],
             id,textPosition={},rectPosition={}
+        
+        if (args) var radius = args.pop();
+        
 
         if( dom.attr('id') ){
             id = dom.attr('id')
@@ -1535,7 +1587,7 @@ Binding.registry('btn',{
             dom.attr('id', id)
         }
 
-        dom.tagName = 'a'
+        dom.tagName = 'button';
         dom.attr('type','text')
 
         var style = {
@@ -1558,11 +1610,11 @@ Binding.registry('btn',{
 
                 if( !dom.innerHTML ){
                     dom.innerHTML = subLayer.stringValue()
-                    textPosition.x = subLayer.absoluteRect().rulerX()
-                    textPosition.y = subLayer.absoluteRect().rulerY()
                 }
 
             }else if( Binding.get_kind(subLayer) == 'Rectangle'){
+              
+                
                 Binding.domGenerators['Rect'].css( fakeDom, subLayer )
 
                 outputRef.styles.push( style )
@@ -1571,6 +1623,41 @@ Binding.registry('btn',{
                     rectPosition.x = subLayer.absoluteRect().rulerX()
                     rectPosition.y = subLayer.absoluteRect().rulerY()
                 }
+
+                
+                
+                
+                var borders = subLayer.style().borders().array(),
+                    fills = subLayer.style().fills().array(),
+                    shadows = subLayer.style().shadows(),
+                    innerShadows = subLayer.style().innerShadows()
+                
+                fakeDom.style['border'] = 'none';
+                if (radius !== undefined) fakeDom.style['border-radius'] = radius;
+                
+                if( borders.count() == 1 && borders.objectAtIndex(0).isEnabled()){
+                    fakeDom.style['border'] = borders.objectAtIndex(0).thickness() +"px solid " + Util.toRGBA( borders.objectAtIndex(0).color() )
+                }
+                if( fills.count() > 0 ){
+                    var backgrounds = []
+                  Util.each( fills, function(fill){
+                
+                        if( fill.isEnabled() == 1 ){
+                          if (fill.fillType() == 4) {
+                              log(fill.image());
+                          
+                              [outputRef,fakeDom] = handler_export_bg(subLayer, outputRef, fakeDom)
+                        
+                          } else {
+                            backgrounds.push( Util.toRGBA( fill.color()))                        
+                          }
+                        }
+                    })
+                    backgrounds.length && ( fakeDom.style['background'] = backgrounds.join(',') )
+                }
+            
+                
+                
             }
 
             Util.extend(style.style['#'+id+(bindings['hover']?':hover':'')] , fakeDom.style)
@@ -1588,6 +1675,8 @@ Binding.registry('btn',{
     //we will take the children from here
     stopAutoApplyBindingForChildren : true
 })
+
+
 /**
  * Created by jiamiu on 14-5-19.
  */
@@ -1682,7 +1771,7 @@ Binding.registry('centering',{
       if ((zoom - parseFloat( zoom ) + 1) >= 0) dom.attr('zoom', zoom);
 
       dom.tagName = 'div';
-      dom.addClass('centering')
+      dom.addClass('centering');
       
       //dom.attr("class", 'centering');
       dom.style = {};
@@ -1694,13 +1783,9 @@ Binding.registry('centering',{
       //dom.style['min-height'] =  height;
       //dom.data('height', height);
       
-      // calcluate if first child here
-      
       dom.style['top'] = (layer.absoluteRect().rulerY() - layer.parentGroup().absoluteRect().rulerY()).toFixed(0);     
-      dom.style.left = '';
-         
-      //dom.style['top'] = (layer.absoluteRect().rulerY() - layer.absoluteRect().rulerY()).toFixed(0);        
       
+      [dom, outputRef] = Util.move_styles_to_sheet(dom, outputRef);
       
       outputRef.dom = dom
     },
@@ -1734,10 +1819,12 @@ Binding.registry('stacking',{
 
 Binding.registry('class',{
     compose: function(  layer, args, outputRef  ){
-        var dom = outputRef.dom,
-            cls = args.pop()
-        dom.addClass(cls);        
-        outputRef.dom = dom
+      var dom = outputRef.dom;
+            
+      Util.each( args , function(cls){
+        dom.addClass(cls);                  
+      });
+      
       
     }
 })
@@ -1756,6 +1843,9 @@ Binding.registry('default',function(  layer, args, outputRef  ){
   var dom = outputRef.dom;
     //dom.attr('class',layer.name().replace(' ','_').toLowerCase());
     //dom.addClass(layer.name().replace(' ','_').toLowerCase());
+    
+    
+    [dom, outputRef] = Util.move_styles_to_sheet(dom, outputRef);
     
     outputRef.dom = dom
   
@@ -1781,6 +1871,9 @@ Binding.registry('form',{
       dom.tagName = 'form'
       dom.attr('method', 'POST' );
       dom.attr('action', action );
+      
+      [dom, outputRef] = Util.move_styles_to_sheet(dom, outputRef);
+      
       outputRef.dom = dom
     },
     
@@ -1876,6 +1969,26 @@ Binding.registry('ignore',{
 })
 
 
+Binding.registry('mobile-collapse',{
+    compose: function(  layer, args, outputRef  ){
+        var dom = outputRef.dom,
+            w = args.pop()
+
+        if (!layer.name().match(/centering/)) {
+          dom.data('left', layer.absoluteRect().rulerX().toFixed(0));          
+        }
+
+      
+        dom.data('width', layer.absoluteRect().width().toFixed(0));
+        dom.data('mobile-collapse', w);
+        
+        outputRef.dom = dom;
+      
+    }
+})
+
+
+
 Binding.registry('mobile-float',{
     compose: function(  layer, args, outputRef  ){
         var dom = outputRef.dom,
@@ -1888,26 +2001,39 @@ Binding.registry('mobile-float',{
 
 
 
-Binding.registry('mobile-scale',{
+Binding.registry('mobile-hide',{
     compose: function(  layer, args, outputRef  ){
-        var dom = outputRef.dom,
-            scale = args.pop()
+      var dom = outputRef.dom;
+      dom.addClass('mobile-hide');
       
-        dom.data('mobile-scale', scale)  
-        outputRef.dom = dom
+      outputRef.dom = dom;
       
     }
 })
 
 
 
-Binding.registry('mobile-width',{
+Binding.registry('mobile-only',{
+    compose: function(  layer, args, outputRef  ){
+      var dom = outputRef.dom;
+      dom.addClass('mobile-only');
+      outputRef.dom = dom;
+      
+    }
+})
+
+
+
+Binding.registry('mobile-scale',{
     compose: function(  layer, args, outputRef  ){
         var dom = outputRef.dom,
-            w = args.pop()
+            scale = args.pop()
+      
         dom.data('width', layer.absoluteRect().width().toFixed(0));
-        dom.data('mobile-width', w);
-        outputRef.dom = dom;
+        dom.data('left', layer.absoluteRect().rulerX().toFixed(0));
+        dom.data('mobile-scale', scale);
+      
+        outputRef.dom = dom
       
     }
 })
@@ -1922,6 +2048,18 @@ Binding.registry('mobilewidth',{
       
     }
 })
+
+
+Binding.registry('name',{
+    compose: function(  layer, args, outputRef  ){
+        var dom = outputRef.dom,
+            name = args.pop()
+      dom.attr('name', name); 
+      outputRef.dom = dom
+      
+    }
+})
+
 
 /**
  * Created by jiamiu on 14-5-19.
@@ -1939,9 +2077,9 @@ Binding.registry('section',{
     compose: function(  layer, args, outputRef  ){      
       var dom = outputRef.dom,
           layers = [layer layers]
-      
+          
       dom.tagName = 'section'
-      dom.attr('class',"wide");
+      dom.addClass('wide');
       dom.style = {};
       //dom.style.width =  layer.absoluteRect().width().toFixed(0);
       
@@ -1952,7 +2090,7 @@ Binding.registry('section',{
       
       Util.each( layers, function( subLayer ){
         
-          if( subLayer.name() == 'background'){
+          if( subLayer.name().match(/background/)) {
             
             var borders = subLayer.style().borders().array(),
                 fills = subLayer.style().fills().array(),
@@ -1964,9 +2102,35 @@ Binding.registry('section',{
             }
             if( fills.count() > 0 ){
                 var backgrounds = []
-                Util.each( fills, function(fill){
+              Util.each( fills, function(fill){
+                
                     if( fill.isEnabled() == 1 ){
-                        backgrounds.push( Util.toRGBA( fill.color()))
+                      if (fill.fillType() == 4) {
+                        
+                        
+                          var image = fill.image();
+                          
+                          image.resolveImageWithCollection([[doc documentData] images]);
+                          
+                          //log([[doc documentData] images]);
+                          //var image = fill.image().imageData().image();
+                          //log(image.imageData().collection());
+                          
+                          //[[MSBitmapLayer image] initWithFrame:frame]
+                          //MSBitmapLayer.bitmapLayerFromImage([image NSImage])
+                          var frame = NSMakeRect(0, 0, 300,300);
+                          //log([image NSImage]);
+                          
+                          //var newLayer = MSBitmapLayer.initWithFrame(frame, [image NSImage]);
+                          var newLayer = MSBitmapLayer.bitmapLayerFromImage([image NSImage]);
+                          
+                          
+                          
+                          [outputRef,dom] = handler_export_bg( newLayer, outputRef, dom, true)
+                        
+                      } else {
+                        backgrounds.push( Util.toRGBA( fill.color()))                        
+                      }
                     }
                 })
                 backgrounds.length && ( dom.style['background'] = backgrounds.join(',') )
@@ -1976,7 +2140,7 @@ Binding.registry('section',{
             
             
             
-          } else if (subLayer.name() == 'Background Image') {
+          } else if (subLayer.name().match(/Background Image/)) {
             [outputRef,dom] = handler_export_bg(subLayer, outputRef, dom)
             
           } else {
@@ -1986,6 +2150,7 @@ Binding.registry('section',{
       
       
       
+      [dom, outputRef] = Util.move_styles_to_sheet(dom, outputRef);
       
       
       outputRef.dom = dom
@@ -2001,7 +2166,18 @@ Binding.registry('tag',{
     compose: function(  layer, args, outputRef  ){
         var dom = outputRef.dom,
             tag = args.pop()
-      dom.tagName = tag;      
+      dom.tagName = tag; 
+      
+      if (tag == 'hidden') {
+        dom.tagName = 'input'; 
+        dom.attr('type', 'hidden')
+        dom.attr('value', layer.stringValue())
+        dom.style = null;
+        dom.attr('class',null);
+      }     
+      
+      
+            
       outputRef.dom = dom
       
     }
@@ -2016,15 +2192,24 @@ Binding.registry('text',{
     compose: function(  layer, args, outputRef  ){
         var dom = outputRef.dom,
             layers = [layer layers]
-
+            
+      if (args) var kind = args.pop();
+      
+      if (kind && kind == 'multiline') {
+        dom.tagName = 'textarea'
+      } else {
         dom.tagName = 'input'
-        dom.attr('type','text')
+        dom.attr('type','text')                
+      }
       
         Util.each( layers, function( subLayer ){
             if( Binding.get_kind( subLayer) =='Text' ){
                 dom.attr('placeholder', subLayer.stringValue() )
                 dom.style['font-size'] = subLayer.fontSize()
-                dom.style['color'] = Util.toRGBA(subLayer.textColor())
+              dom.style['color'] = Util.toRGBA(subLayer.textColor());
+              dom.style['line-height'] = Util.toRGBA(subLayer.textColor());
+              dom.style["line-height"] = subLayer.lineSpacing().toFixed(0) + 'px';
+              
                 //dom.style['padding']= '0 10px'
               
               
@@ -2052,17 +2237,14 @@ Binding.registry('text',{
                 /// border radius seems to be a real problem
             }
         })
-
+        
+        
 
         outputRef.dom = dom
     },
     //we will take the children from here
     stopAutoApplyBindingForChildren : true
 })
-/**
- * Created by jiamiu on 14-5-19.
- */
-
 /**
  * Created by jiamiu on 14-6-9.
  */
@@ -2096,22 +2278,36 @@ Binding.registry('wrapper',{
 
 
 
-function export_as_img( layer, filename ){
+function export_as_img( layer, filename, isPattern ){
   // Actual writing of asset
   var slice,
-    rect = [layer absoluteInfluenceRect]
-
-
-  slice = [[MSSliceMaker slicesFromExportableLayer:layer inRect:rect] firstObject]
-  slice.page = [[doc currentPage] copyLightweight]
-  slice.format = "png"
-  slice.scale = 2
+    rect = [layer absoluteDirtyRect]
+  log(rect);
+  
+   slice = [[MSSliceMaker slicesFromExportableLayer:layer inRect:[layer absoluteDirtyRect]] firstObject]
+   //slice = [[MSSliceMaker slicesFromExportableLayer:layer] firstObject]
+  
+  
+   //slice = [MSSliceMaker sliceFromExportSize:1 layer: layer inRect:[layer absoluteDirtyRect]]
+    slice.page = [[doc currentPage] copyLightweight]
+    if (layer.name().match(/\.jpg$/)) {
+      slice.format = "jpg"    
+    } else {
+      slice.format = "png"    
+    
+    }
+    if (!isPattern) slice.scale = 2
+    else slice.scale = 1;
+  
+  
 
 //  Util.log("— writing asset " + slice + " to disk: " + filename)
   var imageData = [MSSliceExporter dataForRequest:slice]
   [imageData writeToFile:filename atomically:true]
 
 }
+
+
 
 function output( processResult ){
 
@@ -2177,16 +2373,30 @@ function output( processResult ){
     if( processResult.exportFiles ){
         Util.each( processResult.exportFiles, function( fileObj ){
 //            Util.log("exporting "+fileObj.target)
-            export_as_img( fileObj.layer, fileObj.target )
+          log(fileObj);
+          
+          if(fileObj.isPattern){ doc.currentPage().addLayers([fileObj.layer]) } 
+            export_as_img( fileObj.layer, fileObj.target, fileObj.isPattern)            
+          if(fileObj.isPattern) { fileObj.layer.removeFromParent()}
+          
         })
     }
 
     processResult.dom.prepend(
       Dom.create('meta').attr('charset','utf-8'));
     
+    processResult.dom.prepend(
+        Dom.create('link').attr('href','https://fonts.googleapis.com/css?family=PT+Serif').attr('type','text/css').attr('rel','stylesheet'))
+      
+    processResult.dom.prepend(
+      //initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,
+      Dom.create('meta').attr('name','viewport').attr('content','width=device-width, initial-scale=1,  maximum-scale=1')
+    );
+
+    var html = "<html><head></head>" + processResult.dom.outerHTML + '</html>';
 
     //5. Save html
-    Util.save_file_from_string(Config.target_folder + "/index.html", processResult.dom.outerHTML);
+    Util.save_file_from_string(Config.target_folder + "/index.html",  html);
 
 }
 

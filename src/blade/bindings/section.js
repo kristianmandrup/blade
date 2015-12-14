@@ -2,9 +2,9 @@ Binding.registry('section',{
     compose: function(  layer, args, outputRef  ){      
       var dom = outputRef.dom,
           layers = [layer layers]
-      
+          
       dom.tagName = 'section'
-      dom.attr('class',"wide");
+      dom.addClass('wide');
       dom.style = {};
       //dom.style.width =  layer.absoluteRect().width().toFixed(0);
       
@@ -15,7 +15,7 @@ Binding.registry('section',{
       
       Util.each( layers, function( subLayer ){
         
-          if( subLayer.name() == 'background'){
+          if( subLayer.name().match(/background/)) {
             
             var borders = subLayer.style().borders().array(),
                 fills = subLayer.style().fills().array(),
@@ -27,9 +27,35 @@ Binding.registry('section',{
             }
             if( fills.count() > 0 ){
                 var backgrounds = []
-                Util.each( fills, function(fill){
+              Util.each( fills, function(fill){
+                
                     if( fill.isEnabled() == 1 ){
-                        backgrounds.push( Util.toRGBA( fill.color()))
+                      if (fill.fillType() == 4) {
+                        
+                        
+                          var image = fill.image();
+                          
+                          image.resolveImageWithCollection([[doc documentData] images]);
+                          
+                          //log([[doc documentData] images]);
+                          //var image = fill.image().imageData().image();
+                          //log(image.imageData().collection());
+                          
+                          //[[MSBitmapLayer image] initWithFrame:frame]
+                          //MSBitmapLayer.bitmapLayerFromImage([image NSImage])
+                          var frame = NSMakeRect(0, 0, 300,300);
+                          //log([image NSImage]);
+                          
+                          //var newLayer = MSBitmapLayer.initWithFrame(frame, [image NSImage]);
+                          var newLayer = MSBitmapLayer.bitmapLayerFromImage([image NSImage]);
+                          
+                          
+                          
+                          [outputRef,dom] = handler_export_bg( newLayer, outputRef, dom, true)
+                        
+                      } else {
+                        backgrounds.push( Util.toRGBA( fill.color()))                        
+                      }
                     }
                 })
                 backgrounds.length && ( dom.style['background'] = backgrounds.join(',') )
@@ -39,7 +65,7 @@ Binding.registry('section',{
             
             
             
-          } else if (subLayer.name() == 'Background Image') {
+          } else if (subLayer.name().match(/Background Image/)) {
             [outputRef,dom] = handler_export_bg(subLayer, outputRef, dom)
             
           } else {
@@ -49,6 +75,7 @@ Binding.registry('section',{
       
       
       
+      [dom, outputRef] = Util.move_styles_to_sheet(dom, outputRef);
       
       
       outputRef.dom = dom

@@ -10,7 +10,7 @@ Binding.registry('centering',{
       if ((zoom - parseFloat( zoom ) + 1) >= 0) dom.attr('zoom', zoom);
 
       dom.tagName = 'div';
-      dom.addClass('centering')
+      dom.addClass('centering');
       
       //dom.attr("class", 'centering');
       dom.style = {};
@@ -22,13 +22,9 @@ Binding.registry('centering',{
       //dom.style['min-height'] =  height;
       //dom.data('height', height);
       
-      // calcluate if first child here
-      
       dom.style['top'] = (layer.absoluteRect().rulerY() - layer.parentGroup().absoluteRect().rulerY()).toFixed(0);     
-      dom.style.left = '';
-         
-      //dom.style['top'] = (layer.absoluteRect().rulerY() - layer.absoluteRect().rulerY()).toFixed(0);        
       
+      [dom, outputRef] = Util.move_styles_to_sheet(dom, outputRef);
       
       outputRef.dom = dom
     },
