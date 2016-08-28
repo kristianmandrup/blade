@@ -463,6 +463,26 @@ var Util = Util || (function() {
     function script_to_string( scriptObj ){
         return wrap_script([render_variables(scriptObj.vars),scriptObj.body])
     }
+    
+    function move_styles_to_sheet(dom, outputRef) {
+      if( dom.attr('id') ){
+          id = dom.attr('id')
+      }else{
+          id = Binding.generate_id()
+          dom.attr('id', id)
+      }
+
+      var style = {
+          comment : '',
+          style : {}
+      }
+      style.style['#'+id] = {}
+    
+      outputRef.styles.push( style )
+      Util.extend(style.style['#'+id] , dom.style)
+      dom.style = {};
+      return [dom, outputRef]
+    }
 
     my.join = join
     my.map = map
@@ -473,6 +493,7 @@ var Util = Util || (function() {
     my.wrap_script = wrap_script
     my.render_variables = render_variables
     my.script_to_string =script_to_string
+    my.move_styles_to_sheet =move_styles_to_sheet
 
     return my;
 }());

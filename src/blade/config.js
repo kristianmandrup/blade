@@ -23,16 +23,30 @@ var Config = Config || (function(){
         js_folder : js_folder,
         css_folder : css_folder,
         plugin_folder : plugin_folder,
-        global_scripts : [{
-            comment : 'global script : jquery-2.1.1.min.js',
-            origin : plugin_folder + '/blade/lib/jquery-2.1.1.min.js',
-            src : js_folder + '/jquery-2.1.1.min.js'
-        }],
-        global_styles : [{
+        global_scripts : [
+/*          {
+            comment : 'minified',
+            origin : plugin_folder + '/blade/lib/minified.js',
+            src : js_folder + '/minified.js'
+          },*/
+          {
+            comment : 'app',
+            origin : plugin_folder + '/blade/lib/app.js',
+            src : js_folder + '/app.js'
+          }
+        ],
+        global_styles : [
+          {
             comment : 'global reset',
             origin : plugin_folder + '/blade/lib/reset.css',
             href : css_folder + '/reset.css'
-        }],
+          },
+          {
+            comment : 'fonts',
+            origin : plugin_folder + '/fonts/stylesheet.css',
+            href : '/fonts/stylesheet.css'
+          }          
+        ],
         export_img_ext : ".png",
         show_error : false
 

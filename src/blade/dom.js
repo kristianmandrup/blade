@@ -126,6 +126,12 @@ var Dom = Dom || (function(){
         return this
     }
 
+    E.prototype.removeClass = function( className ){
+      var index = this.classList.indexOf(className);
+      this.classList.splice(className, 1);      
+      return this
+    }
+
 //    E.prototype.outerHTML = function(){
 //
 //        var selfClose = ['input','img','textarea','link']
@@ -149,7 +155,7 @@ var Dom = Dom || (function(){
 
     Object.defineProperty(E.prototype,"outerHTML",{
         get : function(){
-            var selfClose = ['input','img','textarea','link']
+            var selfClose = ['input','img','link','meta']
 
             if( selfClose.indexOf(this.tagName ) != -1 ){
                 return '<' + generate_tag_head(this) + ' />'

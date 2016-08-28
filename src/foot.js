@@ -1,24 +1,36 @@
 
 
 
-function export_as_img( layer, filename ){
+function export_as_img( layer, filename, isPattern ){
   // Actual writing of asset
-  var rect = [layer absoluteDirtyRect]
+  var slice,
+    rect = [layer absoluteDirtyRect]
+  log(rect);
+  
+   slice = [[MSSliceMaker slicesFromExportableLayer:layer inRect:[layer absoluteDirtyRect]] firstObject]
+   //slice = [[MSSliceMaker slicesFromExportableLayer:layer] firstObject]
+  
+  
+   //slice = [MSSliceMaker sliceFromExportSize:1 layer: layer inRect:[layer absoluteDirtyRect]]
+    slice.page = [[doc currentPage] copyLightweight]
+    if (layer.name().match(/\.jpg$/)) {
+      slice.format = "jpg"    
+    } else {
+      slice.format = "png"    
+    
+    }
+    if (!isPattern) slice.scale = 2
+    else slice.scale = 1;
+  
+  
 
-  var slice = getSlice();
-  Util.log("— writing asset " + slice + " to disk: " + filename)
+//  Util.log("— writing asset " + slice + " to disk: " + filename)
   var imageData = [MSSliceExporter dataForRequest:slice]
   [imageData writeToFile:filename atomically:true]
 
 }
 
-function getSlice() {
-  slice = [[MSSliceMaker slicesFromExportableLayer:layer inRect:rect] firstObject]
-  slice.page = [[doc currentPage] copyLightweight]
-  slice.format = "png"
-  slice.scale = 2
-  return slice;
-}
+
 
 function output( processResult ){
 
@@ -84,31 +96,46 @@ function output( processResult ){
     if( processResult.exportFiles ){
         Util.each( processResult.exportFiles, function( fileObj ){
 //            Util.log("exporting "+fileObj.target)
-            export_as_img( fileObj.layer, fileObj.target )
+          log(fileObj);
+          
+          if(fileObj.isPattern){ doc.currentPage().addLayers([fileObj.layer]) } 
+            export_as_img( fileObj.layer, fileObj.target, fileObj.isPattern)            
+          if(fileObj.isPattern) { fileObj.layer.removeFromParent()}
+          
         })
     }
 
+    processResult.dom.prepend(
+      Dom.create('meta').attr('charset','utf-8'));
+    
+    processResult.dom.prepend(
+        Dom.create('link').attr('href','https://fonts.googleapis.com/css?family=PT+Serif').attr('type','text/css').attr('rel','stylesheet'))
+      
+    processResult.dom.prepend(
+      //initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,
+      Dom.create('meta').attr('name','viewport').attr('content','width=device-width, initial-scale=1,  maximum-scale=1')
+    );
+
+    var html = "<html><head></head>" + processResult.dom.outerHTML + '</html>';
+
     //5. Save html
-    Util.save_file_from_string(Config.target_folder + "/index.html", processResult.dom.outerHTML);
-//    Util.save_file_from_string(Config.target_folder + "/index.html", processResult.dom.outerHTML());
-}
+    Util.save_file_from_string(Config.target_folder + "/index.html",  html);
 
-
-function displayHeader(label) {
-    Util.log("###################")
-    Util.log("### " + label + " ###")
-    Util.log("###################")
 }
 
 
 function main() {
     Util.execute(function() {
         var start = new Date().getTime()
-        displayHeader('blade start');
+
+        Util.log("###################")
+        Util.log("### blade start ###")
+        Util.log("###################")
 
         //1. Process layers
         var layers = [[doc currentPage] layers],
             processResult
+      
 
         Util.each( layers, function( subLayer ){
             processResult = Binding.apply_bindings( subLayer );
@@ -120,7 +147,9 @@ function main() {
 
         var end = new Date().getTime()
         Util.log("Time used: " +(end - start))
-        displayHeader('blade end');
+        Util.log("###################")
+        Util.log("###  blade end  ###")
+        Util.log("###################")
         [doc showMessage:"Export Complete"]
 
     })
