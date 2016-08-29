@@ -7,14 +7,14 @@ This plugin is based on [blade 0.0.1](https://github.com/sskyy/blade) plugin by 
 
 The goal of this plugin is to export a page with Webcomponents instead of raw HTML.
 Web Components are much nicer to work with as they encapsulate all styling and HTML for each component.
-They also allow sharing and reuse of components and much more... The future of the web!
+They also allow sharing and reuse of components and much more... 
+The future of the web!
 
-## Blade 0.0.1
+## Blade
 
-Blade is a Sketch 3 plugin for automatically HTML generating. It will generate tag `<div>` for group, tag `<p>` for text , etc.
+Blade is a Sketch 3 plugin for automatically generating HTML from a Sketch project. It will generate `<div>` for group, `<p>` for text , etc.
 
 ##Notice##
- - This plugin works for **latest Sketch beta or version above 3.0.3(7882)** !!!.
  - This version is more stable now, but may still have problem with mega size sketch file.
  - Please group all you layer in one group and place it at coordinate (0,0) as the demo shows. - It does not work with artboard for now.
 
@@ -29,11 +29,9 @@ Blade is a Sketch 3 plugin for automatically HTML generating. It will generate t
 
 I uploaded a demo sketch file and the generated HTML files which shows some magic. Have a quick look here:
 
-###1. My sketch file:
-
 <img width= "100%" src = "https://raw.githubusercontent.com/sskyy/blade/master/demo/1.png"/>
 
-You may notice the special layer names such as `[btn]` or `input[text]`. `[***]` is what I called `directive`, similar to AngularJS's directive. The directive will tell blade what kind of dom element should be generate or this layer. And some powerful directives may generate scripts to make element interactive.
+You may notice the special layer names such as `[btn]` or `input[text]`. `[***]` is what I called `directive`, similar to Angular directives. The directive will tell blade what kind of dom element should be generated for a given layer. Also some directives may generate scripts to make element interactive.
 
 
 ###2. The Generated HTML:
@@ -145,15 +143,15 @@ First we create a `Config` object which:
     }
 ```
 
-### Notes 
+### Notes
 
 Other export plugins operate directly from the in-memory context. We should look at these plugins and do this instead!
-We also need to use new Plugin format, using a manifest and simpler cocoascript, possibly using ES6 classes 
-using Babel or TypeScript.
+
+We also need to use new Plugin format, using a `manifest.json` and simpler cocoascript, possibly using ES6 classes using Babel or TypeScript.
 
 We should not export to Angular 1.x or Vue.js. Instead we should export seperate Webcomponents, encapsulated in `<template>` 
 tags per the W3C specs. This would work directly with Aurelia and other web frameworks Webcomponent based frameworks 
-(such as Polymer?). Angular 2 are going their own way with custom template syntax.
+(such as Polymer?). Angular 2 are going their own way with custom template syntax but conceptually we could export to their specific format as well down the road...
 
 ## Setup
 
