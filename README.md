@@ -3,21 +3,22 @@ Sketch Webcomponents
 
 This plugin is based on [blade 0.0.1](https://github.com/sskyy/blade) plugin by Zhenyu Hou @sskyy
 
-## Web Components export
+## Notice
 
-The goal of this plugin is to export a page with Webcomponents instead of raw HTML.
-Web Components are much nicer to work with as they encapsulate all styling and HTML for each component.
-They also allow sharing and reuse of components and much more... 
-The future of the web!
+This plugin is just for "inspiration" and documentation of original plugin.
+My current effort will start from scratch in [Aurelia plugin](https://github.com/kristianmandrup/ExampleSketchPlugins/blob/master/Aurelia%20plugin.md
+). I will use the *blade* plugin for inspiration and key functionalities!
+
+## Web Components export
+The goal of the Aurelia (or Web components) plugin is to export a page with Webcomponents instead of raw HTML as is done by blade.
+Web Components are much nicer to work with as they encapsulate all styling and HTML for each component. They also allow sharing and reuse of components and much more... The future of the web!
 
 ## Blade
-
 Blade is a Sketch 3 plugin for automatically generating HTML from a Sketch project. It will generate `<div>` for group, `<p>` for text , etc.
 
 ##Notice##
  - This version is more stable now, but may still have problem with mega size sketch file.
  - Please group all you layer in one group and place it at coordinate (0,0) as the demo shows. - It does not work with artboard for now.
-
 
 ##Quick start##
  - Clone or download the repo.
@@ -66,8 +67,6 @@ build-in directives:
  - [ ] select
  - [ ] textarea
  - [ ] closeable
-
-I will continue write magic tags for blade, and trying to integrate AngularJS to help build better prototype。
 
 ##How to contribute?##
 
